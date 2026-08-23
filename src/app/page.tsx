@@ -1,65 +1,180 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { MOCK_PROPERTIES } from '@/lib/mockData';
+import { Plus, LocateFixed, Layers } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { MapView } from '@/components/map/MapView';
+import { ListPropertyModal } from '@/components/ui/ListPropertyModal';
+import { PropertyDetailsModal } from '@/components/ui/PropertyDetailsModal';
+import { Property } from '@/types';
+import { getProperties } from '@/lib/firebase/properties';
 
 export default function Home() {
+  const [properties, setProperties] = useState<Property[]>(MOCK_PROPERTIES);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
+  const [wishlistedIds, setWishlistedIds] = useState<string[]>([]);
+  const [comparedIds, setComparedIds] = useState<string[]>([]);
+  const [hoveredPropertyId, setHoveredPropertyId] = useState<string | null>(null);
+  
+  // Drawing & Modal states
+  const [isDrawingMode, setIsDrawingMode] = useState(false);
+  const [drawnCoordinates, setDrawnCoordinates] = useState<number[][]>([]);
+  const [isListModalOpen, setIsListModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
+  // Fetch Firestore properties on mount
+  useEffect(() => {
+    async function loadProperties() {
+      try {
+        const firestoreProps = await getProperties();
+        if (firestoreProps && firestoreProps.length > 0) {
+          setProperties([...firestoreProps, ...MOCK_PROPERTIES]);
+        }
+      } catch (err) {
+        console.log("Using initial mock properties (Firestore offline or empty)");
+      }
+    }
+    loadProperties();
+  }, []);
+
+  const toggleWishlist = (id: string) => {
+    setWishlistedIds((prev) => 
+      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
+    );
+  };
+
+  const toggleCompare = (id: string) => {
+    setComparedIds((prev) => 
+      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
+    );
+  };
+  
+  const startDrawing = () => {
+    setIsSidebarCollapsed(true);
+    setIsDrawingMode(true);
+  };
+
+  const handleDrawComplete = (coordinates: number[][]) => {
+    setIsDrawingMode(false);
+    setIsSidebarCollapsed(false);
+    setDrawnCoordinates(coordinates);
+    setIsListModalOpen(true);
+  };
+
+  const cancelDrawing = () => {
+    setIsDrawingMode(false);
+    setIsSidebarCollapsed(false);
+  };
+
+  const handlePropertySelect = (id: string) => {
+    setSelectedPropertyId(id);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleAddPropertySuccess = async () => {
+    try {
+      const updated = await getProperties();
+      if (updated && updated.length > 0) {
+        setProperties([...updated, ...MOCK_PROPERTIES]);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const selectedProperty = properties.find(p => p.id === selectedPropertyId) || null;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main className="relative flex h-screen w-full overflow-hidden bg-[#0b0d10] text-gray-100">
+      <Sidebar
+        properties={properties}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
+        selectedPropertyId={selectedPropertyId}
+        onPropertySelect={handlePropertySelect}
+        wishlistedIds={wishlistedIds}
+        onToggleWishlist={toggleWishlist}
+        comparedIds={comparedIds}
+        onToggleCompare={toggleCompare}
+        onHoverPropertyStart={setHoveredPropertyId}
+        onHoverPropertyEnd={() => setHoveredPropertyId(null)}
+        onAddPropertyClick={startDrawing}
+      />
+
+      {/* Map Area */}
+      <div className="relative flex-1 h-full w-full">
+        <MapView 
+          properties={properties}
+          selectedPropertyId={selectedPropertyId}
+          hoveredPropertyId={hoveredPropertyId}
+          onPropertySelect={handlePropertySelect}
+          isDrawingMode={isDrawingMode}
+          onDrawComplete={handleDrawComplete}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        {/* Drawing Mode Banner */}
+        <div className={cn(
+          "absolute left-1/2 top-6 z-[1500] flex -translate-x-1/2 items-center gap-6 rounded-2xl border border-emerald-500 bg-[#15181e] px-6 py-4 shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-500",
+          isDrawingMode ? "translate-y-0 opacity-100" : "-translate-y-24 opacity-0 pointer-events-none"
+        )}>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2 text-[15px] font-bold text-emerald-500">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+              </span>
+              Step 1: Draw your property boundary
+            </div>
+            <div className="mt-1 text-[13px] text-gray-400">
+              Click on the map to place points. Click the first point again to finish.
+            </div>
+          </div>
+          <button 
+            onClick={cancelDrawing}
+            className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            Cancel
+          </button>
         </div>
-      </main>
-    </div>
+
+        {/* Floating Action Buttons */}
+        <div className="absolute right-6 top-6 z-[1000] flex flex-col gap-4">
+          <button className="group flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-[#15181e] text-gray-300 shadow-lg transition-all hover:border-emerald-500 hover:text-emerald-500" title="Change Map Type">
+            <Layers className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="absolute right-6 bottom-24 z-[1000] flex flex-col gap-4">
+          <button className="group flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-[#15181e] text-gray-300 shadow-lg transition-all hover:border-emerald-500 hover:text-emerald-500" title="Locate Me">
+            <LocateFixed className="h-5 w-5" />
+          </button>
+          
+          <button 
+            onClick={startDrawing}
+            className="group flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_4px_16px_rgba(16,185,129,0.25)] transition-all hover:scale-105 hover:bg-emerald-600"
+            title="List New Property"
+          >
+            <Plus className="h-6 w-6 stroke-[2.5px]" />
+          </button>
+        </div>
+      </div>
+
+      {/* Modals */}
+      <ListPropertyModal
+        isOpen={isListModalOpen}
+        onOpenChange={setIsListModalOpen}
+        coordinates={drawnCoordinates}
+        onSuccess={handleAddPropertySuccess}
+      />
+
+      <PropertyDetailsModal
+        property={selectedProperty}
+        isOpen={isDetailsModalOpen}
+        onOpenChange={setIsDetailsModalOpen}
+      />
+    </main>
   );
 }

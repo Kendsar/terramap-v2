@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { MapContainer, TileLayer, Polygon, useMap } from 'react-leaflet';
 import { Property } from '@/types';
 import L from 'leaflet';
@@ -13,11 +13,23 @@ interface MapClientProps {
   onPropertySelect: (id: string) => void;
   isDrawingMode?: boolean;
   onDrawComplete?: (coordinates: number[][]) => void;
+  mapType?: 'dark' | 'satellite';
+  locateTrigger?: number; // increment to trigger locate
 }
 
 // Map configuration
 const MAP_CENTER: [number, number] = [39.8283, -98.5795]; // US Center
 const MAP_ZOOM = 4;
+
+const TILE_URLS = {
+  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+};
+
+const TILE_ATTRIBUTIONS = {
+  dark: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  satellite: 'Tiles &copy; Esri',
+};
 
 // Component to handle programmatic map updates (zooming to selected, etc.)
 function MapController({ selectedProperty, hoveredPropertyId }: { selectedProperty?: Property, hoveredPropertyId: string | null }) {
@@ -83,13 +95,61 @@ function GeomanController({ isDrawingMode, onDrawComplete }: { isDrawingMode?: b
   return null;
 }
 
+// Component to handle locate-me via geolocation
+function LocateController({ locateTrigger }: { locateTrigger?: number }) {
+  const map = useMap();
+  const markerRef = useRef<L.CircleMarker | null>(null);
+
+  useEffect(() => {
+    if (!locateTrigger) return;
+
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser.');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const latlng: L.LatLngExpression = [latitude, longitude];
+
+        // Remove old marker
+        if (markerRef.current) {
+          map.removeLayer(markerRef.current);
+        }
+
+        // Add user location marker
+        markerRef.current = L.circleMarker(latlng, {
+          radius: 8,
+          fillColor: '#10b981',
+          fillOpacity: 1,
+          color: '#fff',
+          weight: 3,
+        }).addTo(map);
+
+        markerRef.current.bindPopup('You are here').openPopup();
+        map.flyTo(latlng, 13, { duration: 1.5 });
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        alert('Could not get your location. Please allow location access.');
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, [locateTrigger, map]);
+
+  return null;
+}
+
 export default function MapClient({
   properties,
   selectedPropertyId,
   hoveredPropertyId,
   onPropertySelect,
   isDrawingMode,
-  onDrawComplete
+  onDrawComplete,
+  mapType = 'dark',
+  locateTrigger,
 }: MapClientProps) {
   
   const selectedProperty = properties.find(p => p.id === selectedPropertyId);
@@ -99,12 +159,13 @@ export default function MapClient({
       <MapContainer
         center={MAP_CENTER}
         zoom={MAP_ZOOM}
-        zoomControl={false} // We will use a custom one if needed
+        zoomControl={false}
         className="h-full w-full"
       >
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          key={mapType}
+          url={TILE_URLS[mapType]}
+          attribution={TILE_ATTRIBUTIONS[mapType]}
         />
         
         {/* Render existing properties */}
@@ -134,7 +195,9 @@ export default function MapClient({
 
         <MapController selectedProperty={selectedProperty} hoveredPropertyId={hoveredPropertyId} />
         <GeomanController isDrawingMode={isDrawingMode} onDrawComplete={onDrawComplete} />
+        <LocateController locateTrigger={locateTrigger} />
       </MapContainer>
     </div>
   );
 }
+

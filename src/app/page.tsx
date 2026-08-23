@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MOCK_PROPERTIES } from '@/lib/mockData';
-import { Plus, LocateFixed, Layers } from 'lucide-react';
+import { Plus, LocateFixed, Layers, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MapView } from '@/components/map/MapView';
 import { ListPropertyModal } from '@/components/ui/ListPropertyModal';
@@ -24,6 +24,10 @@ export default function Home() {
   const [drawnCoordinates, setDrawnCoordinates] = useState<number[][]>([]);
   const [isListModalOpen, setIsListModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
+  // Map controls
+  const [mapType, setMapType] = useState<'dark' | 'satellite'>('dark');
+  const [locateTrigger, setLocateTrigger] = useState(0);
 
   // Fetch Firestore properties on mount
   useEffect(() => {
@@ -85,6 +89,14 @@ export default function Home() {
     }
   };
 
+  const toggleMapType = () => {
+    setMapType(prev => prev === 'dark' ? 'satellite' : 'dark');
+  };
+
+  const handleLocateMe = () => {
+    setLocateTrigger(prev => prev + 1);
+  };
+
   const selectedProperty = properties.find(p => p.id === selectedPropertyId) || null;
 
   return (
@@ -113,6 +125,8 @@ export default function Home() {
           onPropertySelect={handlePropertySelect}
           isDrawingMode={isDrawingMode}
           onDrawComplete={handleDrawComplete}
+          mapType={mapType}
+          locateTrigger={locateTrigger}
         />
 
         {/* Drawing Mode Banner */}
@@ -140,18 +154,32 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Floating Action Buttons */}
-        <div className="absolute right-6 top-6 z-[1000] flex flex-col gap-4">
-          <button className="group flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-[#15181e] text-gray-300 shadow-lg transition-all hover:border-emerald-500 hover:text-emerald-500" title="Change Map Type">
-            <Layers className="h-5 w-5" />
+        {/* Floating Action Buttons — stacked bottom-right */}
+        <div className="absolute right-6 bottom-8 z-[1000] flex flex-col gap-3">
+          {/* Map Type Toggle */}
+          <button 
+            onClick={toggleMapType}
+            className={cn(
+              "group flex h-12 w-12 items-center justify-center rounded-full border shadow-lg transition-all",
+              mapType === 'satellite' 
+                ? "border-emerald-500 bg-emerald-500 text-white shadow-emerald-500/25" 
+                : "border-white/10 bg-[#15181e] text-gray-300 hover:border-emerald-500 hover:text-emerald-500"
+            )} 
+            title={mapType === 'dark' ? 'Switch to Satellite' : 'Switch to Dark Map'}
+          >
+            {mapType === 'dark' ? <Globe className="h-5 w-5" /> : <Layers className="h-5 w-5" />}
           </button>
-        </div>
 
-        <div className="absolute right-6 bottom-24 z-[1000] flex flex-col gap-4">
-          <button className="group flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-[#15181e] text-gray-300 shadow-lg transition-all hover:border-emerald-500 hover:text-emerald-500" title="Locate Me">
+          {/* Locate Me */}
+          <button 
+            onClick={handleLocateMe}
+            className="group flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-[#15181e] text-gray-300 shadow-lg transition-all hover:border-emerald-500 hover:text-emerald-500" 
+            title="Locate Me"
+          >
             <LocateFixed className="h-5 w-5" />
           </button>
           
+          {/* Add New Property FAB */}
           <button 
             onClick={startDrawing}
             className="group flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_4px_16px_rgba(16,185,129,0.25)] transition-all hover:scale-105 hover:bg-emerald-600"
@@ -178,3 +206,4 @@ export default function Home() {
     </main>
   );
 }
+

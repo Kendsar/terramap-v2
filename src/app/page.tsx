@@ -155,7 +155,7 @@ export default function Home() {
         </div>
 
         {/* Floating Action Buttons — stacked bottom-right */}
-        <div className="absolute right-6 bottom-8 z-[1000] flex flex-col gap-3">
+        <div className="absolute right-6 top-6 z-[1000] flex flex-col gap-3">
           {/* Map Type Toggle */}
           <button 
             onClick={toggleMapType}
@@ -178,11 +178,12 @@ export default function Home() {
           >
             <LocateFixed className="h-5 w-5" />
           </button>
-          
+        </div>
+        <div className="absolute right-6 bottom-8 z-[1000] flex flex-col gap-3">
           {/* Add New Property FAB */}
           <button 
             onClick={startDrawing}
-            className="group flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_4px_16px_rgba(16,185,129,0.25)] transition-all hover:scale-105 hover:bg-emerald-600"
+            className="group flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_4px_16px_rgba(16,185,129,0.25)] transition-all hover:scale-105 hover:bg-emerald-600"
             title="List New Property"
           >
             <Plus className="h-6 w-6 stroke-[2.5px]" />

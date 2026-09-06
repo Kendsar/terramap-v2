@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "TerraMap | Premium Land Marketplace",
+  title: "TerraLink Land Marketplace",
   description: "Discover, buy, and list agricultural and residential land on TerraMap.",
 };
 

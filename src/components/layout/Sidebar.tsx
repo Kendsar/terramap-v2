@@ -1,6 +1,6 @@
 'use client';
 
-import { Search, Map as MapIcon, SlidersHorizontal, ChevronRight } from 'lucide-react';
+import { Search, Map as MapIcon, SlidersHorizontal, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Property, PropertyType } from '@/types';
 import { PropertyCard } from '../properties/PropertyCard';
 import { cn } from '@/lib/utils';
@@ -60,7 +60,7 @@ export function Sidebar({
           <div className="flex items-center gap-2.5">
             <MapIcon className="h-6 w-6 text-emerald-500 stroke-[2.5px] animate-pulse" />
             <h1 className="font-outfit text-[26px] font-extrabold tracking-tight text-gray-100">
-              Terra<span className="text-emerald-500">Map</span>
+              Terra<span className="text-emerald-500">Link</span>
             </h1>
           </div>
           <div className="mt-1 text-[11px] font-medium uppercase tracking-[2px] text-gray-400">
@@ -153,7 +153,7 @@ export function Sidebar({
             : "left-[420px] -translate-x-1/2 max-md:bottom-[calc(80vh-18px)] max-md:rotate-[90deg]"
         )}
       >
-        <ChevronRight className="h-4.5 w-4.5" />
+        <ChevronLeft className="h-4.5 w-4.5" />
       </button>
     </>
   );

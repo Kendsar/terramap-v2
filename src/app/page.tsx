@@ -8,10 +8,13 @@ import { cn } from '@/lib/utils';
 import { MapView } from '@/components/map/MapView';
 import { ListPropertyModal } from '@/components/ui/ListPropertyModal';
 import { PropertyDetailsModal } from '@/components/ui/PropertyDetailsModal';
+import { AuthModal } from '@/components/auth/AuthModal';
+import { useAuth } from '@/components/auth/AuthContext';
 import { Property } from '@/types';
 import { getProperties } from '@/lib/firebase/properties';
 
 export default function Home() {
+  const { user } = useAuth();
   const [properties, setProperties] = useState<Property[]>(MOCK_PROPERTIES);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
@@ -24,6 +27,7 @@ export default function Home() {
   const [drawnCoordinates, setDrawnCoordinates] = useState<number[][]>([]);
   const [isListModalOpen, setIsListModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Map controls
   const [mapType, setMapType] = useState<'dark' | 'satellite'>('dark');
@@ -60,6 +64,29 @@ export default function Home() {
     setIsSidebarCollapsed(true);
     setIsDrawingMode(true);
   };
+
+  const handleInitiateListing = () => {
+    if (!user) {
+      setIsAuthModalOpen(true);
+    } else {
+      startDrawing();
+    }
+  };
+
+  // Check if returning from full auth page with action=list
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('action') === 'list' || params.get('redirect') === 'list') {
+        if (user) {
+          startDrawing();
+          window.history.replaceState({}, '', '/');
+        } else {
+          setIsAuthModalOpen(true);
+        }
+      }
+    }
+  }, [user]);
 
   const handleDrawComplete = (coordinates: number[][]) => {
     setIsDrawingMode(false);
@@ -113,7 +140,8 @@ export default function Home() {
         onToggleCompare={toggleCompare}
         onHoverPropertyStart={setHoveredPropertyId}
         onHoverPropertyEnd={() => setHoveredPropertyId(null)}
-        onAddPropertyClick={startDrawing}
+        onAddPropertyClick={handleInitiateListing}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
       />
 
       {/* Map Area */}
@@ -182,7 +210,7 @@ export default function Home() {
         <div className="absolute right-6 bottom-8 z-[1000] flex flex-col gap-3">
           {/* Add New Property FAB */}
           <button 
-            onClick={startDrawing}
+            onClick={handleInitiateListing}
             className="group flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_4px_16px_rgba(16,185,129,0.25)] transition-all hover:scale-105 hover:bg-emerald-600"
             title="List New Property"
           >
@@ -192,6 +220,14 @@ export default function Home() {
       </div>
 
       {/* Modals */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onOpenChange={setIsAuthModalOpen}
+        onSuccess={() => {
+          startDrawing();
+        }}
+      />
+
       <ListPropertyModal
         isOpen={isListModalOpen}
         onOpenChange={setIsListModalOpen}

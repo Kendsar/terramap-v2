@@ -126,6 +126,10 @@ h6 {
     background: rgba(255, 255, 255, 0.2);
 }
 
+.bg-tertiary-500 {
+    background-color: var(--tertiary);
+}
+
 /* Layout Container */
 .app-container {
     display: flex;

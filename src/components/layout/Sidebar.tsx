@@ -1,6 +1,6 @@
 'use client';
 
-import { Search, Map as MapIcon, SlidersHorizontal, ChevronRight, ChevronLeft, LogIn, LogOut, User } from 'lucide-react';
+import { Search, Map as MapIcon, SlidersHorizontal, ChevronLeft, LogIn, LogOut, User } from 'lucide-react';
 import { Property, PropertyType } from '@/types';
 import { PropertyCard } from '../properties/PropertyCard';
 import { ThemeToggle } from '../theme/ThemeToggle';
@@ -51,8 +51,10 @@ export function Sidebar({
     });
     function getColor(type: string): string {
         switch (type) {
+            case 'all':
+                return 'bg-white dark:bg-[#15181e]';
             case 'land':
-                return 'bg-emerald-500 text-white shadow-[0_4px_12px_rgba(16,185,129,0.2)]';
+                return 'bg-tertiary-500 text-white shadow-[0_4px_12px_rgba(16,185,129,0.2)]';
             case 'farm':
                 return 'bg-emerald-500 text-white shadow-[0_4px_12px_rgba(16,185,129,0.2)]';
             case 'house':
@@ -147,7 +149,7 @@ export function Sidebar({
                                 onClick={() => setSelectedType(type)}
                                 className={cn(
                                     "flex items-center justify-center gap-1 rounded-lg py-2 text-xs font-semibold capitalize transition-all",
-                                    getColor(type)
+                                    selectedType === type ? getColor(type) : ''
                                 )}
                             >
                                 {type}

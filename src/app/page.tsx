@@ -13,8 +13,12 @@ import { useAuth } from '@/components/auth/AuthContext';
 import { Property } from '@/types';
 import { getProperties } from '@/lib/firebase/properties';
 
+import { useTheme } from '@/components/theme/ThemeContext';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
+
 export default function Home() {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const [properties, setProperties] = useState<Property[]>(MOCK_PROPERTIES);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
@@ -29,9 +33,11 @@ export default function Home() {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  // Map controls
-  const [mapType, setMapType] = useState<'dark' | 'satellite'>('dark');
+  // Map controls - synchronized with theme
+  const [isSatellite, setIsSatellite] = useState(false);
   const [locateTrigger, setLocateTrigger] = useState(0);
+
+  const mapType: 'dark' | 'light' | 'satellite' = isSatellite ? 'satellite' : theme;
 
   // Fetch Firestore properties on mount
   useEffect(() => {
@@ -116,8 +122,8 @@ export default function Home() {
     }
   };
 
-  const toggleMapType = () => {
-    setMapType(prev => prev === 'dark' ? 'satellite' : 'dark');
+  const toggleSatellite = () => {
+    setIsSatellite(prev => !prev);
   };
 
   const handleLocateMe = () => {
@@ -127,7 +133,7 @@ export default function Home() {
   const selectedProperty = properties.find(p => p.id === selectedPropertyId) || null;
 
   return (
-    <main className="relative flex h-screen w-full overflow-hidden bg-[#0b0d10] text-gray-100">
+    <main className="relative flex h-screen w-full overflow-hidden bg-slate-50 text-slate-900 dark:bg-[#0b0d10] dark:text-gray-100 transition-colors duration-200">
       <Sidebar
         properties={properties}
         isCollapsed={isSidebarCollapsed}
@@ -159,49 +165,52 @@ export default function Home() {
 
         {/* Drawing Mode Banner */}
         <div className={cn(
-          "absolute left-1/2 top-6 z-[1500] flex -translate-x-1/2 items-center gap-6 rounded-2xl border border-emerald-500 bg-[#15181e] px-6 py-4 shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-500",
+          "absolute left-1/2 top-6 z-[1500] flex -translate-x-1/2 items-center gap-6 rounded-2xl border border-emerald-500 bg-white/95 dark:bg-[#15181e] px-6 py-4 shadow-[0_4px_25px_rgba(16,185,129,0.2)] backdrop-blur-md transition-all duration-500",
           isDrawingMode ? "translate-y-0 opacity-100" : "-translate-y-24 opacity-0 pointer-events-none"
         )}>
           <div className="flex flex-col">
-            <div className="flex items-center gap-2 text-[15px] font-bold text-emerald-500">
+            <div className="flex items-center gap-2 text-[15px] font-bold text-emerald-600 dark:text-emerald-500">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
               </span>
               Step 1: Draw your property boundary
             </div>
-            <div className="mt-1 text-[13px] text-gray-400">
+            <div className="mt-1 text-[13px] text-slate-500 dark:text-gray-400">
               Click on the map to place points. Click the first point again to finish.
             </div>
           </div>
           <button 
             onClick={cancelDrawing}
-            className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
+            className="rounded-xl border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-200 hover:text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white"
           >
             Cancel
           </button>
         </div>
 
-        {/* Floating Action Buttons — stacked bottom-right */}
+        {/* Floating Action Buttons — stacked top-right */}
         <div className="absolute right-6 top-6 z-[1000] flex flex-col gap-3">
-          {/* Map Type Toggle */}
+          {/* Dark / Light Theme Toggle */}
+          <ThemeToggle variant="floating" />
+
+          {/* Map Satellite Toggle */}
           <button 
-            onClick={toggleMapType}
+            onClick={toggleSatellite}
             className={cn(
-              "group flex h-12 w-12 items-center justify-center rounded-full border shadow-lg transition-all",
-              mapType === 'satellite' 
+              "group flex h-12 w-12 items-center justify-center rounded-full border shadow-lg transition-all duration-300 hover:scale-105",
+              isSatellite 
                 ? "border-emerald-500 bg-emerald-500 text-white shadow-emerald-500/25" 
-                : "border-white/10 bg-[#15181e] text-gray-300 hover:border-emerald-500 hover:text-emerald-500"
+                : "border-slate-200 bg-white text-slate-700 hover:border-emerald-500 hover:text-emerald-600 dark:border-white/10 dark:bg-[#15181e] dark:text-gray-300 dark:hover:border-emerald-500 dark:hover:text-emerald-500 shadow-slate-300/50 dark:shadow-black/40"
             )} 
-            title={mapType === 'dark' ? 'Switch to Satellite' : 'Switch to Dark Map'}
+            title={isSatellite ? `Switch to ${theme === 'dark' ? 'Dark' : 'Light'} Map` : 'Switch to Satellite View'}
           >
-            {mapType === 'dark' ? <Globe className="h-5 w-5" /> : <Layers className="h-5 w-5" />}
+            {isSatellite ? <Layers className="h-5 w-5" /> : <Globe className="h-5 w-5" />}
           </button>
 
           {/* Locate Me */}
           <button 
             onClick={handleLocateMe}
-            className="group flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-[#15181e] text-gray-300 shadow-lg transition-all hover:border-emerald-500 hover:text-emerald-500" 
+            className="group flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-lg transition-all duration-300 hover:scale-105 hover:border-emerald-500 hover:text-emerald-600 dark:border-white/10 dark:bg-[#15181e] dark:text-gray-300 dark:hover:border-emerald-500 dark:hover:text-emerald-500 shadow-slate-300/50 dark:shadow-black/40" 
             title="Locate Me"
           >
             <LocateFixed className="h-5 w-5" />

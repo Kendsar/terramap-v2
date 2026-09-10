@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MOCK_PROPERTIES } from '@/lib/mockData';
 import { Plus, LocateFixed, Layers, Globe } from 'lucide-react';
@@ -187,8 +188,24 @@ export default function MapPage() {
                     </button>
                 </div>
 
+                {/* Return to Home — Middle Top */}
+                <div
+                    className={cn(
+                        "absolute left-1/2 top-4 sm:top-6 z-[1000] -translate-x-1/2 transition-all duration-300",
+                        isDrawingMode && "pointer-events-none -translate-y-12 opacity-0"
+                    )}
+                >
+                    <Link
+                        href="/"
+                        className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white/95 px-5 py-2 text-xs font-semibold text-slate-700 shadow-lg backdrop-blur-md transition-all duration-200 hover:scale-105 hover:border-emerald-500 hover:text-emerald-600 active:scale-95 dark:border-white/10 dark:bg-[#15181e]/95 dark:text-gray-200 dark:hover:border-emerald-500 dark:hover:text-emerald-400 sm:px-6 sm:py-2.5 sm:text-sm shadow-slate-300/40 dark:shadow-black/40"
+                    >
+                        Back to Home
+                    </Link>
+                </div>
+
                 {/* Floating Action Buttons — stacked top-right */}
                 <div className="absolute right-6 top-6 z-[1000] flex flex-col gap-3">
+
                     {/* Map Satellite Toggle */}
                     <button
                         onClick={toggleSatellite}

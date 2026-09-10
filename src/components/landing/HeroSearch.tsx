@@ -31,7 +31,7 @@ export function HeroSearch() {
   };
 
   return (
-    <section className="relative flex min-h-[100svh] items-center justify-center overflow-x-hidden pt-24 pb-14 sm:pt-32 sm:pb-24">
+    <section className="relative flex min-h-[100svh] items-center justify-center overflow-x-hidden pt-28 pb-14 sm:pt-32 sm:pb-24">
       {/* Background */}
       <div className="absolute inset-0 z-0">
         <img

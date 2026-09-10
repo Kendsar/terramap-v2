@@ -26,6 +26,13 @@ export default function MapPage() {
     const [comparedIds, setComparedIds] = useState<string[]>([]);
     const [hoveredPropertyId, setHoveredPropertyId] = useState<string | null>(null);
 
+    // On mobile (< 768px), sidebar should be closed by default when visiting the map
+    useEffect(() => {
+        if (typeof window !== 'undefined' && window.innerWidth < 768) {
+            setIsSidebarCollapsed(true);
+        }
+    }, []);
+
     // Drawing & Modal states
     const [isDrawingMode, setIsDrawingMode] = useState(false);
     const [drawnCoordinates, setDrawnCoordinates] = useState<number[][]>([]);
@@ -96,14 +103,18 @@ export default function MapPage() {
 
     const handleDrawComplete = (coordinates: number[][]) => {
         setIsDrawingMode(false);
-        setIsSidebarCollapsed(false);
+        if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+            setIsSidebarCollapsed(false);
+        }
         setDrawnCoordinates(coordinates);
         setIsListModalOpen(true);
     };
 
     const cancelDrawing = () => {
         setIsDrawingMode(false);
-        setIsSidebarCollapsed(false);
+        if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+            setIsSidebarCollapsed(false);
+        }
     };
 
     const handlePropertySelect = (id: string) => {

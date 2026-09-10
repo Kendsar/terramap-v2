@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
-import { MapContainer, TileLayer, Polygon, Tooltip, useMap } from 'react-leaflet';
+import { useEffect, useRef, useCallback, Fragment } from 'react';
+import { MapContainer, TileLayer, Polygon, Marker, Tooltip, useMap } from 'react-leaflet';
 import { Property } from '@/types';
 import L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
@@ -186,6 +186,36 @@ function LocateController({ locateTrigger }: { locateTrigger?: number }) {
   return null;
 }
 
+function createPropertyLabelIcon(property: Property, isSelected: boolean) {
+  const priceFormatted = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(property.price);
+
+  const html = `
+    <div class="polygon-property-badge ${isSelected ? 'polygon-badge-selected' : ''}">
+      <span class="badge-title">${property.title}</span>
+      <div class="badge-meta">
+        <span class="badge-price">${priceFormatted}</span>
+        <span class="badge-sep">•</span>
+        <span class="badge-size">${property.size} ${property.sizeUnit}</span>
+      </div>
+      <div class="badge-type">
+        <span>${property.type}</span>
+        ${property.zoning ? `<span>•</span><span>${property.zoning}</span>` : ''}
+      </div>
+    </div>
+  `;
+
+  return L.divIcon({
+    html,
+    className: 'polygon-label-marker',
+    iconSize: [0, 0],
+    iconAnchor: [0, 0],
+  });
+}
+
 export default function MapClient({
   properties,
   selectedPropertyId,
@@ -225,31 +255,39 @@ export default function MapClient({
           const color = property.type === 'house' ? '#eab308' :
             property.type === 'farm' ? '#10b981' : '#3b82f6';
 
+          const center = L.latLngBounds(property.coordinates.map(c => [c[0], c[1]])).getCenter();
+          const labelIcon = createPropertyLabelIcon(property, isSelected);
+
           return (
-            <Polygon
-              key={property.id}
-              positions={property.coordinates as [number, number][]}
-              pathOptions={{
-                color: color,
-                fillColor: color,
-                fillOpacity: isSelected || isHovered ? 0.6 : 0.25,
-                weight: isSelected ? 4 : 2,
-                className: 'cursor-pointer transition-all',
-              }}
-              eventHandlers={{
-                click: (e) => {
-                  L.DomEvent.stopPropagation(e as any);
-                  onPropertySelect(property.id);
-                },
-              }}
-            >
-              <Tooltip sticky direction="top" opacity={0.95}>
-                <div className="font-sans text-xs">
-                  <div className="font-bold text-slate-900">{property.title}</div>
-                  <div className="text-[11px] text-emerald-600 font-semibold">Click to view details</div>
-                </div>
-              </Tooltip>
-            </Polygon>
+            <Fragment key={property.id}>
+              <Polygon
+                positions={property.coordinates as [number, number][]}
+                pathOptions={{
+                  color: color,
+                  fillColor: color,
+                  fillOpacity: isSelected || isHovered ? 0.6 : 0.25,
+                  weight: isSelected ? 4 : 2,
+                  className: 'cursor-pointer transition-all',
+                }}
+                eventHandlers={{
+                  click: (e) => {
+                    L.DomEvent.stopPropagation(e as any);
+                    onPropertySelect(property.id);
+                  },
+                }}
+              >
+                <Tooltip sticky direction="top" opacity={0.95} className="polygon-hover-tooltip">
+                  Click to view more details
+                </Tooltip>
+              </Polygon>
+
+              {/* Permanent small-font property list directly on the polygon */}
+              <Marker
+                position={[center.lat, center.lng]}
+                icon={labelIcon}
+                interactive={false}
+              />
+            </Fragment>
           );
         })}
 

@@ -61,7 +61,7 @@ export function HeroSearch() {
         </div> */}
 
         {/* Headline */}
-        <h1 className="mt-8 mb-4 font-outfit text-5xl font-extrabold leading-[1.1] tracking-tight text-white md:text-6xl lg:text-7xl">
+        <h1 className="mt-[80px] mb-4 px-5 py-5 font-outfit text-5xl font-extrabold leading-[1.1] tracking-tight text-white md:text-6xl lg:text-7xl">
           Find the right property{' '}
           <span className="bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
             Connect with the right opportunity.
@@ -69,7 +69,7 @@ export function HeroSearch() {
         </h1>
 
         {/* Subtitle */}
-        <p className="mx-auto mb-10 max-w-2xl text-lg text-gray-300 md:text-xl">
+        <p className="mx-auto mb-10 max-w-2xl px-5 text-lg text-gray-300 md:px-0 md:text-xl">
           Explore agricultural lands, farms, and houses across Tunisia — with precision parcel maps and verified listings.
         </p>
 

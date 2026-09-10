@@ -39,7 +39,7 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
               <MapIcon className="h-7 w-7 text-emerald-500 stroke-[2.5px] transition-transform duration-300 group-hover:scale-110" />
               <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
             </div>
-            <span className="font-outfit text-[22px] font-extrabold tracking-tight text-slate-900 dark:text-white">
+            <span className="font-outfit text-[22px] font-extrabold tracking-[0.08em] text-white">
               Terra<span className="text-emerald-500">Link</span>
             </span>
           </Link>
@@ -48,27 +48,27 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
           <nav className="hidden md:flex items-center gap-1">
             <Link
               href="/"
-              className="px-4 py-2 text-[14px] font-semibold text-slate-700 dark:text-gray-300 rounded-xl hover:bg-slate-100 dark:hover:bg-white/8 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all"
+              className="px-4 py-2 text-[14px] font-semibold text-white rounded-xl hover:bg-slate-100 dark:hover:bg-white/8 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all"
             >
               Explore
             </Link>
             <Link
-              href="/map?action=list"
-              className="px-4 py-2 text-[14px] font-semibold text-slate-700 dark:text-gray-300 rounded-xl hover:bg-slate-100 dark:hover:bg-white/8 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all"
-            >
-              Add a Property
-            </Link>
-            <Link
               href="/map"
-              className="flex items-center gap-1.5 px-4 py-2 text-[14px] font-semibold text-slate-700 dark:text-gray-300 rounded-xl hover:bg-slate-100 dark:hover:bg-white/8 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all"
+              className="flex items-center gap-1.5 px-4 py-2 text-[14px] font-semibold text-white rounded-xl hover:bg-slate-100 dark:hover:bg-white/8 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all"
             >
               <MapIcon className="h-3.5 w-3.5" />
               Map
             </Link>
+            <Link
+              href="/map?action=list"
+              className="px-4 py-2 text-[14px] font-semibold text-white rounded-xl hover:bg-slate-100 dark:hover:bg-white/8 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all"
+            >
+              List a Property
+            </Link>
             {user && (
               <Link
                 href="/map"
-                className="px-4 py-2 text-[14px] font-semibold text-slate-700 dark:text-gray-300 rounded-xl hover:bg-slate-100 dark:hover:bg-white/8 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all"
+                className="px-4 py-2 text-[14px] font-semibold text-white rounded-xl hover:bg-slate-100 dark:hover:bg-white/8 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all"
               >
                 My Properties
               </Link>
@@ -121,25 +121,18 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
               <>
                 <button
                   onClick={onOpenAuth}
-                  className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-[13px] font-semibold text-slate-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-white/8 transition-all"
+                  className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-[13px] font-semibold text-white hover:hover:bg-white/8 dark:hover:bg-white/8 transition-all"
                 >
                   <LogIn className="h-3.5 w-3.5" />
                   Sign In
                 </button>
-                <Link
-                  href="/map?action=list"
-                  className="flex items-center gap-1.5 rounded-xl bg-emerald-500 px-4 py-2 text-[13px] font-bold text-white shadow-lg shadow-emerald-500/25 hover:bg-emerald-600 hover:shadow-emerald-500/40 transition-all"
-                >
-                  <Plus className="h-3.5 w-3.5 stroke-[3px]" />
-                  List Property
-                </Link>
               </>
             )}
           </div>
 
           {/* Mobile hamburger */}
           <button
-            className="md:hidden flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-white/8 transition-all"
+            className="md:hidden flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 dark:border-white/10 text-white hover:bg-slate-100 dark:hover:bg-white/8 transition-all"
             onClick={() => setIsMobileMenuOpen(v => !v)}
             aria-label="Toggle menu"
           >

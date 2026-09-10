@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useCallback } from 'react';
-import { MapContainer, TileLayer, Polygon, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Polygon, Tooltip, useMap } from 'react-leaflet';
 import { Property } from '@/types';
 import L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
@@ -15,6 +15,8 @@ interface MapClientProps {
   onDrawComplete?: (coordinates: number[][]) => void;
   mapType?: 'dark' | 'light' | 'satellite';
   locateTrigger?: number; // increment to trigger locate
+  flyToTrigger?: number;
+  isSidebarCollapsed?: boolean;
 }
 
 // Map configuration
@@ -41,15 +43,49 @@ const TILE_ATTRIBUTIONS = {
 };
 
 // Component to handle programmatic map updates (zooming to selected, etc.)
-function MapController({ selectedProperty, hoveredPropertyId }: { selectedProperty?: Property, hoveredPropertyId: string | null }) {
+function MapController({
+  selectedProperty,
+  hoveredPropertyId,
+  flyToTrigger,
+  isSidebarCollapsed,
+}: {
+  selectedProperty?: Property;
+  hoveredPropertyId: string | null;
+  flyToTrigger?: number;
+  isSidebarCollapsed?: boolean;
+}) {
   const map = useMap();
+  const prevTriggerRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
-    if (selectedProperty && selectedProperty.coordinates.length > 0) {
+    if (!flyToTrigger || flyToTrigger === prevTriggerRef.current) return;
+    prevTriggerRef.current = flyToTrigger;
+
+    if (selectedProperty && selectedProperty.coordinates && selectedProperty.coordinates.length > 0) {
       const bounds = L.latLngBounds(selectedProperty.coordinates.map(c => [c[0], c[1]]));
-      map.flyToBounds(bounds, { padding: [50, 50], duration: 1.5 });
+
+      const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
+      const isSidebarVisible = isDesktop && !isSidebarCollapsed;
+
+      // When sidebar is open on desktop, offset map padding so the property is centered in visible map area
+      const paddingTopLeft: [number, number] = isSidebarVisible ? [450, 50] : [50, 50];
+      const paddingBottomRight: [number, number] = [50, 50];
+
+      map.flyToBounds(bounds, {
+        paddingTopLeft,
+        paddingBottomRight,
+        maxZoom: 16,
+        duration: 1.5,
+      });
     }
-  }, [selectedProperty, map]);
+  }, [flyToTrigger, selectedProperty, isSidebarCollapsed, map]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 320);
+    return () => clearTimeout(timer);
+  }, [isSidebarCollapsed, map]);
 
   return null;
 }
@@ -159,6 +195,8 @@ export default function MapClient({
   onDrawComplete,
   mapType = 'dark',
   locateTrigger,
+  flyToTrigger,
+  isSidebarCollapsed,
 }: MapClientProps) {
 
   const selectedProperty = properties.find(p => p.id === selectedPropertyId);
@@ -194,17 +232,33 @@ export default function MapClient({
               pathOptions={{
                 color: color,
                 fillColor: color,
-                fillOpacity: isSelected || isHovered ? 0.6 : 0.2,
+                fillOpacity: isSelected || isHovered ? 0.6 : 0.25,
                 weight: isSelected ? 4 : 2,
+                className: 'cursor-pointer transition-all',
               }}
               eventHandlers={{
-                click: () => onPropertySelect(property.id),
+                click: (e) => {
+                  L.DomEvent.stopPropagation(e as any);
+                  onPropertySelect(property.id);
+                },
               }}
-            />
+            >
+              <Tooltip sticky direction="top" opacity={0.95}>
+                <div className="font-sans text-xs">
+                  <div className="font-bold text-slate-900">{property.title}</div>
+                  <div className="text-[11px] text-emerald-600 font-semibold">Click to view details</div>
+                </div>
+              </Tooltip>
+            </Polygon>
           );
         })}
 
-        <MapController selectedProperty={selectedProperty} hoveredPropertyId={hoveredPropertyId} />
+        <MapController
+          selectedProperty={selectedProperty}
+          hoveredPropertyId={hoveredPropertyId}
+          flyToTrigger={flyToTrigger}
+          isSidebarCollapsed={isSidebarCollapsed}
+        />
         <GeomanController isDrawingMode={isDrawingMode} onDrawComplete={onDrawComplete} />
         <LocateController locateTrigger={locateTrigger} />
       </MapContainer>

@@ -43,6 +43,7 @@ export default function MapPage() {
     // Map controls - synchronized with theme
     const [isSatellite, setIsSatellite] = useState(false);
     const [locateTrigger, setLocateTrigger] = useState(0);
+    const [flyToTrigger, setFlyToTrigger] = useState(0);
 
     const mapType: 'dark' | 'light' | 'satellite' = isSatellite ? 'satellite' : theme;
 
@@ -117,7 +118,20 @@ export default function MapPage() {
         }
     };
 
-    const handlePropertySelect = (id: string) => {
+    // Clicking a property card in the sidebar: navigates to exact map location only (popup remains closed)
+    const handleCardSelect = (id: string) => {
+        setSelectedPropertyId(id);
+        setFlyToTrigger((prev) => prev + 1);
+        setIsDetailsModalOpen(false);
+
+        // On mobile screens (< 768px), collapse sidebar bottom sheet so user can see the map
+        if (typeof window !== 'undefined' && window.innerWidth < 768) {
+            setIsSidebarCollapsed(true);
+        }
+    };
+
+    // Clicking the property directly on the map: opens the popup details panel
+    const handleMapPropertyClick = (id: string) => {
         setSelectedPropertyId(id);
         setIsDetailsModalOpen(true);
     };
@@ -150,7 +164,7 @@ export default function MapPage() {
                 isCollapsed={isSidebarCollapsed}
                 onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
                 selectedPropertyId={selectedPropertyId}
-                onPropertySelect={handlePropertySelect}
+                onPropertySelect={handleCardSelect}
                 wishlistedIds={wishlistedIds}
                 onToggleWishlist={toggleWishlist}
                 comparedIds={comparedIds}
@@ -167,11 +181,13 @@ export default function MapPage() {
                     properties={properties}
                     selectedPropertyId={selectedPropertyId}
                     hoveredPropertyId={hoveredPropertyId}
-                    onPropertySelect={handlePropertySelect}
+                    onPropertySelect={handleMapPropertyClick}
                     isDrawingMode={isDrawingMode}
                     onDrawComplete={handleDrawComplete}
                     mapType={mapType}
                     locateTrigger={locateTrigger}
+                    flyToTrigger={flyToTrigger}
+                    isSidebarCollapsed={isSidebarCollapsed}
                 />
 
                 {/* Drawing Mode Banner */}

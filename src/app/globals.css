@@ -309,6 +309,18 @@ h6 {
     font-weight: 600;
 }
 
+/* custom input */
+input[type="text"],
+input[type="number"],
+input[type="url"],
+input[type="email"],
+input[type="tel"],
+select,
+textarea {
+    padding: 7px 10px !important;
+    font-size: 13px !important;
+}
+
 input[type="range"] {
     -webkit-appearance: none;
     width: 100%;

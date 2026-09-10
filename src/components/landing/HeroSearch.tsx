@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, MapPin, ChevronDown, SlidersHorizontal } from 'lucide-react';
+import { Search, MapPin, ChevronDown, SlidersHorizontal, Coins } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const PROPERTY_TYPES = [
@@ -111,12 +111,12 @@ export function HeroSearch() {
 
             {/* Price Range */}
             <div className="flex flex-1 items-center gap-2.5 sm:gap-3 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-              <SlidersHorizontal className="h-5 w-5 shrink-0 text-emerald-500" />
+              <Coins className="h-5 w-5 shrink-0 text-emerald-500" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
-                    placeholder="min price"
+                    placeholder="min"
                     value={minPrice}
                     onChange={(e) => setMinPrice(e.target.value)}
                     className="w-full bg-transparent text-[16px] md:text-[14px] font-medium text-slate-800 dark:text-gray-100 outline-none placeholder:text-slate-400 dark:placeholder:text-gray-500"
@@ -124,7 +124,7 @@ export function HeroSearch() {
                   <span className="text-slate-300 dark:text-gray-600 font-medium">—</span>
                   <input
                     type="number"
-                    placeholder="max price"
+                    placeholder="max"
                     value={maxPrice}
                     onChange={(e) => setMaxPrice(e.target.value)}
                     className="w-full bg-transparent text-[16px] md:text-[14px] font-medium text-slate-800 dark:text-gray-100 outline-none placeholder:text-slate-400 dark:placeholder:text-gray-500"
@@ -157,9 +157,9 @@ export function HeroSearch() {
             <button
               type="button"
               onClick={handleSearch}
-              className="mt-1 flex w-full md:w-auto shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-3.5 sm:py-4 text-[15px] font-bold text-white shadow-lg shadow-emerald-500/30 transition-all hover:bg-emerald-600 hover:shadow-emerald-500/50 active:scale-98 md:mt-0 md:rounded-2xl"
+              className="mt-1 flex w-full md:w-auto shrink-0 items-center justify-center gap-1 rounded-lg bg-emerald-500 px-2.5 py-2 text-xs font-semibold text-white shadow-md shadow-emerald-500/30 transition-all hover:bg-emerald-600 hover:shadow-emerald-500/50 active:scale-98 md:mt-0 md:rounded-2xl"
             >
-              <Search className="h-5 w-5 stroke-[2.5px]" />
+              <Search className="h-4 w-4 stroke-[2.5px]" />
               <span className="inline md:hidden">Search Properties</span>
               <span className="hidden md:inline">Search</span>
             </button>

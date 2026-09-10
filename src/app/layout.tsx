@@ -9,6 +9,12 @@ export const metadata: Metadata = {
     "Discover, buy, and list agricultural and residential land on TerraMap.",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{

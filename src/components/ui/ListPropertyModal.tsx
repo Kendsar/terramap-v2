@@ -4,7 +4,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { X, UploadCloud, MapPin, Tag, DollarSign, Maximize2, User, Phone, FileText } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { PropertyType } from '@/types';
-import { addProperty } from '@/lib/firebase/properties';
+import { MOCK_PROPERTIES } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/components/auth/AuthContext';
 
@@ -70,7 +70,8 @@ export function ListPropertyModal({ isOpen, onOpenChange, coordinates, onSuccess
     try {
       const image = formData.image.trim() || DEFAULT_IMAGES[formData.type];
 
-      await addProperty({
+      const newProperty = {
+        id: `prop-${Date.now()}`,
         title: formData.title,
         type: formData.type,
         price: Number(formData.price),
@@ -82,7 +83,10 @@ export function ListPropertyModal({ isOpen, onOpenChange, coordinates, onSuccess
         contact: formData.contact,
         image,
         coordinates: coordinates,
-      });
+        features: [],
+        zoning: 'Unspecified'
+      };
+      MOCK_PROPERTIES.push(newProperty as any);
 
       resetForm();
       onSuccess();

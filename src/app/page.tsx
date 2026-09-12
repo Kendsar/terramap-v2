@@ -30,6 +30,7 @@ export default function LandingPage() {
       <AuthModal
         isOpen={isAuthModalOpen}
         onOpenChange={setIsAuthModalOpen}
+        intent="signin"
         onSuccess={() => setIsAuthModalOpen(false)}
       />
     </div>

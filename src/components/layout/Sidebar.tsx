@@ -1,15 +1,21 @@
 'use client';
 
-import { Search, Map as MapIcon, SlidersHorizontal, ChevronLeft, LogIn, LogOut, User } from 'lucide-react';
-import { Property, PropertyType } from '@/types';
+import { Search, Map as MapIcon, SlidersHorizontal, ChevronLeft, LogIn, LogOut } from 'lucide-react';
+import { Property } from '@/types';
 import { PropertyCard } from '../properties/PropertyCard';
 import { ThemeToggle } from '../theme/ThemeToggle';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
+import type { PropertyFilters } from '@/lib/filters';
+
+const SEARCH_DEBOUNCE_MS = 300;
 
 interface SidebarProps {
+    /** Already filtered by the page; the sidebar only edits the filters. */
     properties: Property[];
+    filters: PropertyFilters;
+    onFiltersChange: (filters: PropertyFilters) => void;
     isCollapsed: boolean;
     onToggleCollapse: () => void;
     onPropertySelect: (id: string) => void;
@@ -26,6 +32,8 @@ interface SidebarProps {
 
 export function Sidebar({
     properties,
+    filters,
+    onFiltersChange,
     isCollapsed,
     onToggleCollapse,
     onPropertySelect,
@@ -40,15 +48,24 @@ export function Sidebar({
     onOpenAuth,
 }: SidebarProps) {
     const { user, logout } = useAuth();
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedType, setSelectedType] = useState<PropertyType | 'all'>('all');
+    const selectedType = filters.type;
 
-    const filteredProperties = properties.filter((p) => {
-        const matchesType = selectedType === 'all' || p.type === selectedType;
-        const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            p.placement.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesType && matchesSearch;
-    });
+    // Typing stays local and is pushed to the shared filters (and the URL) on a debounce.
+    const [searchQuery, setSearchQuery] = useState(filters.location);
+    const [syncedLocation, setSyncedLocation] = useState(filters.location);
+    if (filters.location !== syncedLocation) {
+        // Filters changed elsewhere (landing search, back/forward): adopt the new value.
+        setSyncedLocation(filters.location);
+        setSearchQuery(filters.location);
+    }
+
+    useEffect(() => {
+        if (searchQuery === filters.location) return;
+        const timeout = setTimeout(() => {
+            onFiltersChange({ ...filters, location: searchQuery });
+        }, SEARCH_DEBOUNCE_MS);
+        return () => clearTimeout(timeout);
+    }, [searchQuery, filters, onFiltersChange]);
     function getColor(type: string): string {
         switch (type) {
             case 'all':
@@ -146,7 +163,7 @@ export function Sidebar({
                         {(['all', 'land', 'farm', 'house'] as const).map((type) => (
                             <button
                                 key={type}
-                                onClick={() => setSelectedType(type)}
+                                onClick={() => onFiltersChange({ ...filters, type })}
                                 className={cn(
                                     "flex items-center justify-center gap-1 rounded-lg py-2 text-xs font-semibold capitalize transition-all",
                                     selectedType === type ? getColor(type) : ''
@@ -162,7 +179,7 @@ export function Sidebar({
                 <div className="flex-1 flex flex-col gap-4 overflow-y-auto p-5">
                     <div className="flex items-center justify-between">
                         <h2 className="text-base font-bold text-slate-900 dark:text-gray-100">
-                            {filteredProperties.length} Properties Found
+                            {properties.length} Properties Found
                         </h2>
                         <button className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 dark:border-white/10 text-slate-500 dark:text-gray-400 transition-colors hover:border-slate-400 hover:bg-slate-100 hover:text-slate-900 dark:hover:border-gray-500 dark:hover:bg-white/5 dark:hover:text-gray-100">
                             <SlidersHorizontal className="h-4 w-4" />
@@ -170,7 +187,7 @@ export function Sidebar({
                     </div>
 
                     <div className="flex flex-col gap-3.5">
-                        {filteredProperties.map((property) => (
+                        {properties.map((property) => (
                             <PropertyCard
                                 key={property.id}
                                 property={property}

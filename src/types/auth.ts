@@ -7,6 +7,7 @@ export interface AuthUser {
 
 export interface AuthState {
   user: AuthUser | null;
+  initializing: boolean;
   loading: boolean;
   error: string | null;
 }
@@ -35,4 +36,10 @@ export interface AuthProvider {
   resetPassword(email: string): Promise<AuthResult>;
   logout(): Promise<void>;
   getCurrentUser(): AuthUser | null;
+  /**
+   * Observe the restored session. The callback fires once the provider knows
+   * whether a user is signed in, then on every subsequent change.
+   * Returns an unsubscribe function.
+   */
+  onAuthStateChanged(callback: (user: AuthUser | null) => void): () => void;
 }

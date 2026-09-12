@@ -6,6 +6,7 @@ import { FormInput } from './FormInput';
 import { PasswordInput, calculatePasswordStrength } from './PasswordInput';
 import { SocialLoginButtons } from './SocialLoginButtons';
 import { useAuth } from './AuthContext';
+import { resolveAuthRedirect } from '@/lib/auth/redirect';
 
 interface SignupFormProps {
   onSwitchToLogin: () => void;
@@ -114,16 +115,11 @@ export function SignupForm({ onSwitchToLogin, onSuccess }: SignupFormProps) {
               onSuccess();
             } else {
               const params = new URLSearchParams(window.location.search);
-              const redirect = params.get('redirect');
-              if (redirect) {
-                window.location.href = redirect.startsWith('/') ? redirect : `/${redirect}`;
-              } else {
-                window.location.href = '/';
-              }
+              window.location.href = resolveAuthRedirect(params.get('redirect'));
             }
           }}
         >
-          {onSuccess ? 'Continue to List Property' : 'Go to Dashboard'}
+          {onSuccess ? 'Continue' : 'Go to Dashboard'}
         </button>
       </div>
     );

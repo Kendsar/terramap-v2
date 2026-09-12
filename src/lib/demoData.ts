@@ -1,6 +1,13 @@
 import { Property } from '@/types';
 
-export const MOCK_PROPERTIES: Property[] = [
+/**
+ * Opt-in sample listings for local development and demos.
+ * Enable with NEXT_PUBLIC_ENABLE_DEMO_DATA=true; never enabled implicitly,
+ * so production shows real Firestore listings only.
+ */
+export const isDemoDataEnabled = process.env.NEXT_PUBLIC_ENABLE_DEMO_DATA === 'true';
+
+export const DEMO_PROPERTIES: Property[] = [
   {
     id: 'prop-1',
     title: 'Sunset Valley Agricultural Land',
@@ -15,7 +22,9 @@ export const MOCK_PROPERTIES: Property[] = [
     image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&auto=format&fit=crop&q=60',
     coordinates: [[38.4, -122.9], [38.41, -122.9], [38.41, -122.89], [38.4, -122.89]],
     features: ['Irrigation System', 'Soil Tested', 'Paved Access'],
-    zoning: 'Agricultural'
+    zoning: 'Agricultural',
+    ownerId: 'demo',
+    status: 'active'
   },
   {
     id: 'prop-2',
@@ -31,7 +40,9 @@ export const MOCK_PROPERTIES: Property[] = [
     image: 'https://images.unsplash.com/photo-1444858291040-58f756a3bdd6?w=800&auto=format&fit=crop&q=60',
     coordinates: [[44.05, -121.3], [44.06, -121.3], [44.06, -121.29], [44.05, -121.29]],
     features: ['Solar Power', 'Deep Well', 'Greenhouse', 'Modern Cabin'],
-    zoning: 'Mixed Use'
+    zoning: 'Mixed Use',
+    ownerId: 'demo',
+    status: 'active'
   },
   {
     id: 'prop-3',
@@ -47,6 +58,8 @@ export const MOCK_PROPERTIES: Property[] = [
     image: 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=800&auto=format&fit=crop&q=60',
     coordinates: [[39.09, -119.9], [39.1, -119.9], [39.1, -119.89], [39.09, -119.89]],
     features: ['Lakefront', 'Utilities Ready', 'Approved Plans'],
-    zoning: 'Residential'
+    zoning: 'Residential',
+    ownerId: 'demo',
+    status: 'active'
   }
 ];

@@ -6,6 +6,8 @@ import type { AuthUser, LoginCredentials, SignupCredentials, AuthResult } from '
 
 interface AuthContextValue {
   user: AuthUser | null;
+  /** True until the persisted session has been restored. */
+  initializing: boolean;
   loading: boolean;
   error: string | null;
   login: (credentials: LoginCredentials) => Promise<AuthResult>;
@@ -19,14 +21,16 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [initializing, setInitializing] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const current = authService.getCurrentUser();
-    if (current) {
-      setUser(current);
-    }
+    const unsubscribe = authService.onAuthStateChanged((nextUser) => {
+      setUser(nextUser);
+      setInitializing(false);
+    });
+    return unsubscribe;
   }, []);
 
   const clearError = useCallback(() => setError(null), []);
@@ -102,6 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext value={{
       user,
+      initializing,
       loading,
       error,
       login,

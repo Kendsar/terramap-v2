@@ -32,15 +32,22 @@ function setStoredUser(user: AuthUser | null) {
 }
 
 /**
- * Mock authentication provider for local development.
+ * Mock authentication provider for local development without Firebase credentials.
+ * Not wired up by default — `authService` uses FirebaseAuthProvider.
  * Simulates network latency and realistic success/error responses.
- * Replace with FirebaseAuthProvider (or any real provider) for production.
  */
 export class MockAuthProvider implements AuthProvider {
   private currentUser: AuthUser | null = null;
+  private listeners = new Set<(user: AuthUser | null) => void>();
 
   constructor() {
     this.currentUser = getStoredUser();
+  }
+
+  private setUser(user: AuthUser | null) {
+    this.currentUser = user;
+    setStoredUser(user);
+    this.listeners.forEach((listener) => listener(user));
   }
 
   async login(credentials: LoginCredentials): Promise<AuthResult> {
@@ -61,8 +68,7 @@ export class MockAuthProvider implements AuthProvider {
       createdAt: new Date().toISOString(),
     };
 
-    this.currentUser = user;
-    setStoredUser(user);
+    this.setUser(user);
     return { success: true, user };
   }
 
@@ -84,8 +90,7 @@ export class MockAuthProvider implements AuthProvider {
       createdAt: new Date().toISOString(),
     };
 
-    this.currentUser = user;
-    setStoredUser(user);
+    this.setUser(user);
     return { success: true, user };
   }
 
@@ -104,8 +109,7 @@ export class MockAuthProvider implements AuthProvider {
 
   async logout(): Promise<void> {
     await delay(400);
-    this.currentUser = null;
-    setStoredUser(null);
+    this.setUser(null);
   }
 
   getCurrentUser(): AuthUser | null {
@@ -113,5 +117,13 @@ export class MockAuthProvider implements AuthProvider {
       this.currentUser = getStoredUser();
     }
     return this.currentUser;
+  }
+
+  onAuthStateChanged(callback: (user: AuthUser | null) => void): () => void {
+    this.listeners.add(callback);
+    callback(this.getCurrentUser());
+    return () => {
+      this.listeners.delete(callback);
+    };
   }
 }

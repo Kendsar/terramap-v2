@@ -4,6 +4,10 @@ import {
   sendPasswordResetEmail,
   signOut,
   updateProfile,
+  onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase/config';
 import type { AuthProvider, AuthResult, AuthUser, LoginCredentials, SignupCredentials } from '@/types/auth';
@@ -11,14 +15,8 @@ import type { AuthProvider, AuthResult, AuthUser, LoginCredentials, SignupCreden
 /**
  * Firebase authentication provider.
  *
- * To activate:
- * 1. Enable Email/Password auth in Firebase Console → Authentication → Sign-in method
- * 2. In `src/lib/auth/authService.ts`, change the provider from MockAuthProvider to FirebaseAuthProvider
- *
- * Environment variables (optional, if you move config out of config.ts):
- *   NEXT_PUBLIC_FIREBASE_API_KEY
- *   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
- *   NEXT_PUBLIC_FIREBASE_PROJECT_ID
+ * Requires Email/Password sign-in enabled in Firebase Console → Authentication,
+ * and the NEXT_PUBLIC_FIREBASE_* environment variables from .env.example.
  */
 export class FirebaseAuthProvider implements AuthProvider {
   private mapFirebaseUser(fbUser: { uid: string; email: string | null; displayName: string | null }): AuthUser {
@@ -31,6 +29,10 @@ export class FirebaseAuthProvider implements AuthProvider {
 
   async login(credentials: LoginCredentials): Promise<AuthResult> {
     try {
+      await setPersistence(
+        auth,
+        credentials.rememberMe === false ? browserSessionPersistence : browserLocalPersistence
+      );
       const result = await signInWithEmailAndPassword(auth, credentials.email, credentials.password);
       return { success: true, user: this.mapFirebaseUser(result.user) };
     } catch (err: unknown) {
@@ -76,15 +78,29 @@ export class FirebaseAuthProvider implements AuthProvider {
     await signOut(auth);
   }
 
+  /**
+   * Only meaningful once Firebase has restored the persisted session; callers
+   * should rely on `onAuthStateChanged` for the initial user.
+   */
   getCurrentUser(): AuthUser | null {
     const user = auth.currentUser;
     if (!user) return null;
     return this.mapFirebaseUser(user);
   }
 
+  onAuthStateChanged(callback: (user: AuthUser | null) => void): () => void {
+    return onAuthStateChanged(auth, (fbUser) => {
+      callback(fbUser ? this.mapFirebaseUser(fbUser) : null);
+    });
+  }
+
   /** Map Firebase error codes to user-friendly messages */
   private friendlyError(message: string): string {
-    if (message.includes('auth/user-not-found') || message.includes('auth/wrong-password')) {
+    if (
+      message.includes('auth/user-not-found') ||
+      message.includes('auth/wrong-password') ||
+      message.includes('auth/invalid-credential')
+    ) {
       return 'Invalid email or password. Please try again.';
     }
     if (message.includes('auth/email-already-in-use')) {

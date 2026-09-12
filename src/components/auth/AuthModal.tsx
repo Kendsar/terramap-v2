@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { X, Lock, ExternalLink, Sparkles, MapPin } from 'lucide-react';
+import { X, Lock, ExternalLink } from 'lucide-react';
 import { LoginForm } from './LoginForm';
 import { SignupForm } from './SignupForm';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
@@ -13,20 +13,43 @@ interface AuthModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+  /** What the user was trying to do; carried through to the full-page flow. */
+  intent?: 'signin' | 'list';
   title?: string;
   description?: string;
 }
 
 type ModalAuthView = 'login' | 'signup' | 'forgot';
 
+const INTENT_COPY = {
+  list: {
+    title: 'Sign In Required to List Property',
+    description:
+      'You must be signed in or registered to draw property boundaries and publish listings on TerraLink.',
+  },
+  signin: {
+    title: 'Sign In to TerraLink',
+    description: 'Access your account to save properties and manage your listings.',
+  },
+} as const;
+
+/** Where the full-page auth flow should return the user for each intent. */
+const INTENT_REDIRECT = {
+  list: '/map?action=list',
+  signin: '/map',
+} as const;
+
 export function AuthModal({
   isOpen,
   onOpenChange,
   onSuccess,
-  title = 'Sign In Required to List Property',
-  description = 'You must be signed in or registered to draw property boundaries and publish listings on TerraLink.',
+  intent = 'list',
+  title,
+  description,
 }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState<ModalAuthView>('login');
+  const copy = INTENT_COPY[intent];
+  const fullPageHref = `/auth?redirect=${encodeURIComponent(INTENT_REDIRECT[intent])}`;
 
   const handleSuccess = () => {
     onOpenChange(false);
@@ -49,10 +72,10 @@ export function AuthModal({
                 </div>
                 <div className="min-w-0">
                   <Dialog.Title className="text-base sm:text-lg font-bold text-slate-900 dark:text-gray-100 flex items-center gap-2">
-                    {title}
+                    {title ?? copy.title}
                   </Dialog.Title>
                   <Dialog.Description className="mt-0.5 sm:mt-1 text-xs text-slate-500 dark:text-gray-400 leading-relaxed max-w-sm">
-                    {description}
+                    {description ?? copy.description}
                   </Dialog.Description>
                 </div>
               </div>
@@ -129,11 +152,11 @@ export function AuthModal({
           {/* Footer note */}
           <div className="border-t border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/[0.02] px-4 sm:px-6 py-3 shrink-0 flex items-center justify-between text-[11px] text-slate-500 dark:text-gray-400 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
             <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400/90 font-medium">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>Demo mode: Any credentials work</span>
+              <Lock className="h-3.5 w-3.5" />
+              <span>Secured by Firebase Authentication</span>
             </div>
             <a
-              href="/auth?redirect=list"
+              href={fullPageHref}
               className="hidden sm:flex items-center gap-1 text-slate-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-400 transition-colors"
               title="Open full page login"
             >

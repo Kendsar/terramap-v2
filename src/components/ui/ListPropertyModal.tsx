@@ -65,12 +65,21 @@ export function ListPropertyModal({ isOpen, onOpenChange, coordinates, onSuccess
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!user) {
+      // The Firestore rules reject unauthenticated writes; fail before the round trip.
+      alert('Please sign in before publishing a listing.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       const image = formData.image.trim() || DEFAULT_IMAGES[formData.type];
 
       await addProperty({
+        ownerId: user.id,
+        status: 'active',
         title: formData.title,
         type: formData.type,
         price: Number(formData.price),

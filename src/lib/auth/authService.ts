@@ -1,16 +1,16 @@
 import type { AuthProvider } from '@/types/auth';
-import { MockAuthProvider } from './mockAuthProvider';
-// import { FirebaseAuthProvider } from './firebaseAuthProvider';
+import { FirebaseAuthProvider } from './firebaseAuthProvider';
 
 /**
  * Authentication service singleton.
  *
- * To switch to real Firebase authentication:
- * 1. Uncomment the FirebaseAuthProvider import above
- * 2. Change the line below to: const authService: AuthProvider = new FirebaseAuthProvider();
- * 3. Enable Email/Password auth in your Firebase Console
+ * Backed by Firebase Authentication (email/password). Requires the
+ * NEXT_PUBLIC_FIREBASE_* variables from .env.example and Email/Password
+ * sign-in enabled in the Firebase Console.
+ *
+ * `MockAuthProvider` in this folder implements the same interface and can be
+ * swapped in for local development without Firebase credentials.
  */
-const authService: AuthProvider = new MockAuthProvider();
-// const authService: AuthProvider = new FirebaseAuthProvider();
+const authService: AuthProvider = new FirebaseAuthProvider();
 
 export { authService };

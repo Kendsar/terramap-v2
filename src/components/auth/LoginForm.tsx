@@ -6,6 +6,7 @@ import { FormInput } from './FormInput';
 import { PasswordInput } from './PasswordInput';
 import { SocialLoginButtons } from './SocialLoginButtons';
 import { useAuth } from './AuthContext';
+import { resolveAuthRedirect } from '@/lib/auth/redirect';
 
 interface LoginFormProps {
   onSwitchToSignup: () => void;
@@ -50,12 +51,7 @@ export function LoginForm({ onSwitchToSignup, onSwitchToForgot, onSuccess }: Log
         onSuccess();
       } else {
         const params = new URLSearchParams(window.location.search);
-        const redirect = params.get('redirect');
-        if (redirect) {
-          window.location.href = redirect.startsWith('/') ? redirect : `/${redirect}`;
-        } else {
-          window.location.href = '/';
-        }
+        window.location.href = resolveAuthRedirect(params.get('redirect'));
       }
     }
   };

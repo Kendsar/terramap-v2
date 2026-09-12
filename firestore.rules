@@ -1,0 +1,55 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /properties/{propertyId} {
+
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner() {
+        return isSignedIn() && request.auth.uid == resource.data.ownerId;
+      }
+
+      function hasValidShape(data) {
+        return data.title is string && data.title.size() > 0 && data.title.size() <= 200
+          && data.type in ['land', 'farm', 'house']
+          && data.price is number && data.price >= 0
+          && data.size is number && data.size >= 0
+          && data.sizeUnit in ['acres', 'sqft', 'hectares', 'sqm']
+          && data.placement is string
+          && data.description is string && data.description.size() <= 5000
+          && data.ownerName is string
+          && data.contact is string
+          && data.image is string
+          && data.coordinates is list && data.coordinates.size() >= 3
+          && data.status in ['active', 'draft', 'sold'];
+      }
+
+      // Public listings are world-readable; drafts and sold listings only by their owner.
+      // Collection queries must therefore filter on status == 'active' unless the caller
+      // also constrains ownerId to their own uid.
+      allow get, list: if resource.data.status == 'active' || isOwner();
+
+      allow create: if isSignedIn()
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && hasValidShape(request.resource.data);
+
+      // Ownership and creation time are immutable.
+      allow update: if isOwner()
+        && request.resource.data.ownerId == resource.data.ownerId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && hasValidShape(request.resource.data);
+
+      allow delete: if isOwner();
+    }
+
+    // Everything else is denied until it has its own reviewed rules.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

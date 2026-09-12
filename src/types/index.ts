@@ -1,5 +1,7 @@
 export type PropertyType = 'land' | 'farm' | 'house';
 
+export type PropertyStatus = 'active' | 'draft' | 'sold';
+
 export interface Property {
   id: string;
   title: string;
@@ -15,4 +17,11 @@ export interface Property {
   coordinates: number[][]; // [lat, lng][]
   features?: string[];
   zoning?: string;
+  ownerId: string;
+  status: PropertyStatus;
+  /** Creation time in milliseconds since epoch. Undefined until the server timestamp resolves. */
+  createdAt?: number;
 }
+
+/** Fields a client supplies when publishing a listing. */
+export type NewProperty = Omit<Property, 'id' | 'createdAt'>;

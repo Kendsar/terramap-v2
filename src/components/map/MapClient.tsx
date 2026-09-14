@@ -245,13 +245,11 @@ function PropertiesLayer({
   return (
     <>
       {properties.map(property => {
-        console.log('property of', property.ownerName);
         const isSelected = property.id === selectedPropertyId;
         const isHovered = property.id === hoveredPropertyId;
 
         const color = property.type === 'house' ? '#eab308' :
           property.type === 'farm' ? '#10b981' : '#3b82f6';
-        console.log('property color', color);
 
         const center = L.latLngBounds(property.coordinates.map(c => [c[0], c[1]])).getCenter();
         const labelIcon = createPropertyLabelIcon(property, isSelected);

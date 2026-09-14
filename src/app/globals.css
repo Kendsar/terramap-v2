@@ -2119,7 +2119,7 @@ textarea {
 .polygon-label-marker {
     background: transparent !important;
     border: none !important;
-    pointer-events: none !important;
+    pointer-events: auto !important;
 }
 
 .polygon-property-badge {
@@ -2139,7 +2139,8 @@ textarea {
     box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
     color: #f8fafc;
     user-select: none;
-    pointer-events: none;
+    pointer-events: auto;
+    cursor: pointer;
     width: max-content;
     max-width: 145px;
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
@@ -2152,11 +2153,11 @@ textarea {
     color: #0f172a;
 }
 
-.polygon-badge-selected {
+/* .polygon-badge-selected {
     border-color: #10b981 !important;
     box-shadow: 0 0 20px rgba(16, 185, 129, 0.45), 0 4px 18px rgba(0, 0, 0, 0.35) !important;
     transform: translate(-50%, -50%) scale(1.05);
-}
+} */
 
 .badge-title {
     font-size: 11px;

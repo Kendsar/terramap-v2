@@ -48,5 +48,38 @@ export const MOCK_PROPERTIES: Property[] = [
     coordinates: [[39.09, -119.9], [39.1, -119.9], [39.1, -119.89], [39.09, -119.89]],
     features: ['Lakefront', 'Utilities Ready', 'Approved Plans'],
     zoning: 'Residential'
+  },
+  {
+    id: "prop-1789056261895",
+    title: "Terrain a Kelibia la blanche",
+    type: "land",
+    price: 120000,
+    size: 100,
+    sizeUnit: "acres",
+    placement: "Kelibia la blanche",
+    description: "El belge land",
+    ownerName: "Skander Jenhani",
+    contact: "skander.jenhani@gmail.com",
+    image: "https://images.unsplash.com/photo-1787127409176-f708062e051b?q=80&w=736&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    coordinates: [
+      [
+        36.85354873051317,
+        11.12447261810303
+      ],
+      [
+        36.85327838331946,
+        11.124236583709717
+      ],
+      [
+        36.853141063743784,
+        11.124579906463625
+      ],
+      [
+        36.853364207928955,
+        11.124789118766786
+      ]
+    ],
+    features: [],
+    zoning: "Unspecified"
   }
 ];

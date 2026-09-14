@@ -193,8 +193,11 @@ function createPropertyLabelIcon(property: Property, isSelected: boolean) {
     maximumFractionDigits: 0,
   }).format(property.price);
 
+  const color = property.type === 'house' ? '#eab308' :
+    property.type === 'farm' ? '#10b981' : '#3b82f6';
+
   const html = `
-    <div class="polygon-property-badge ${isSelected ? 'polygon-badge-selected' : ''}">
+    <div class="polygon-property-badge ${isSelected ? 'polygon-badge-selected' : ''}" style="border-color: ${color};" onclick="window.dispatchEvent(new CustomEvent('mapPropertyClick', { detail: '${property.id}' }))">
       <span class="badge-title">${property.title}</span>
       <div class="badge-meta">
         <span class="badge-price">${priceFormatted}</span>
@@ -214,6 +217,92 @@ function createPropertyLabelIcon(property: Property, isSelected: boolean) {
     iconSize: [0, 0],
     iconAnchor: [0, 0],
   });
+}
+
+function PropertiesLayer({
+  properties,
+  selectedPropertyId,
+  hoveredPropertyId,
+  onPropertySelect,
+}: {
+  properties: Property[];
+  selectedPropertyId: string | null;
+  hoveredPropertyId: string | null;
+  onPropertySelect: (id: string, currentZoom?: number) => void;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    const handleCustomClick = (e: any) => {
+      if (e.detail) {
+        onPropertySelect(e.detail, map.getZoom());
+      }
+    };
+    window.addEventListener('mapPropertyClick', handleCustomClick);
+    return () => window.removeEventListener('mapPropertyClick', handleCustomClick);
+  }, [map, onPropertySelect]);
+
+  return (
+    <>
+      {properties.map(property => {
+        console.log('property of', property.ownerName);
+        const isSelected = property.id === selectedPropertyId;
+        const isHovered = property.id === hoveredPropertyId;
+
+        const color = property.type === 'house' ? '#eab308' :
+          property.type === 'farm' ? '#10b981' : '#3b82f6';
+        console.log('property color', color);
+
+        const center = L.latLngBounds(property.coordinates.map(c => [c[0], c[1]])).getCenter();
+        const labelIcon = createPropertyLabelIcon(property, isSelected);
+
+        return (
+          <Fragment key={property.id}>
+            <Polygon
+              positions={property.coordinates as [number, number][]}
+              pathOptions={{
+                color: color,
+                fillColor: color,
+                fillOpacity: isSelected || isHovered ? 0.6 : 0.25,
+                weight: isSelected ? 4 : 2,
+                className: 'cursor-pointer transition-all',
+              }}
+              eventHandlers={{
+                click: (e) => {
+                  L.DomEvent.stopPropagation(e as any);
+                  onPropertySelect(property.id, map.getZoom());
+                },
+              }}
+            >
+              <Tooltip
+                sticky direction="top" opacity={0.95} className="polygon-hover-tooltip"
+                eventHandlers={{
+                  click: (e) => {
+                    L.DomEvent.stopPropagation(e as any);
+                    onPropertySelect(property.id, map.getZoom());
+                  },
+                }}
+              >
+                {isSelected ? "Click to view more details" : "Click to select property"}
+              </Tooltip>
+            </Polygon>
+
+            <Marker
+              position={[center.lat, center.lng]}
+              icon={labelIcon}
+              interactive={true}
+              eventHandlers={{
+                click: (e) => {
+                  L.DomEvent.stopPropagation(e as any);
+                  onPropertySelect(property.id, map.getZoom());
+                },
+              }}
+            />
+          </Fragment>
+        );
+      })}
+    </>
+  );
 }
 
 export default function MapClient({
@@ -247,49 +336,12 @@ export default function MapClient({
           maxZoom={20}
         />
 
-        {/* Render existing properties */}
-        {properties.map(property => {
-          const isSelected = property.id === selectedPropertyId;
-          const isHovered = property.id === hoveredPropertyId;
-
-          const color = property.type === 'house' ? '#eab308' :
-            property.type === 'farm' ? '#10b981' : '#3b82f6';
-
-          const center = L.latLngBounds(property.coordinates.map(c => [c[0], c[1]])).getCenter();
-          const labelIcon = createPropertyLabelIcon(property, isSelected);
-
-          return (
-            <Fragment key={property.id}>
-              <Polygon
-                positions={property.coordinates as [number, number][]}
-                pathOptions={{
-                  color: color,
-                  fillColor: color,
-                  fillOpacity: isSelected || isHovered ? 0.6 : 0.25,
-                  weight: isSelected ? 4 : 2,
-                  className: 'cursor-pointer transition-all',
-                }}
-                eventHandlers={{
-                  click: (e) => {
-                    L.DomEvent.stopPropagation(e as any);
-                    onPropertySelect(property.id);
-                  },
-                }}
-              >
-                <Tooltip sticky direction="top" opacity={0.95} className="polygon-hover-tooltip">
-                  Click to view more details
-                </Tooltip>
-              </Polygon>
-
-              {/* Permanent small-font property list directly on the polygon */}
-              <Marker
-                position={[center.lat, center.lng]}
-                icon={labelIcon}
-                interactive={false}
-              />
-            </Fragment>
-          );
-        })}
+        <PropertiesLayer
+          properties={properties}
+          selectedPropertyId={selectedPropertyId}
+          hoveredPropertyId={hoveredPropertyId}
+          onPropertySelect={onPropertySelect}
+        />
 
         <MapController
           selectedProperty={selectedProperty}

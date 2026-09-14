@@ -130,10 +130,24 @@ export default function MapPage() {
         }
     };
 
-    // Clicking the property directly on the map: opens the popup details panel
-    const handleMapPropertyClick = (id: string) => {
-        setSelectedPropertyId(id);
-        setIsDetailsModalOpen(true);
+    // Clicking the property directly on the map:
+    // If not selected, fly to it (like sidebar does). If already selected, open the popup details panel.
+    const handleMapPropertyClick = (id: string, currentZoom?: number) => {
+        const MAX_ZOOM = 16; // Matches maxZoom in flyToBounds
+        
+        // If already selected AND zoomed in to max, open details
+        if (selectedPropertyId === id && currentZoom !== undefined && currentZoom >= MAX_ZOOM) {
+            setIsDetailsModalOpen(true);
+        } else {
+            // Otherwise, select and zoom to it
+            setSelectedPropertyId(id);
+            setFlyToTrigger((prev) => prev + 1);
+            setIsDetailsModalOpen(false);
+            
+            if (typeof window !== 'undefined' && window.innerWidth < 768) {
+                setIsSidebarCollapsed(true);
+            }
+        }
     };
 
     const handleAddPropertySuccess = async () => {
